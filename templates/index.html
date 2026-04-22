@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔑 LLM API Keys · Admin Dashboard</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+            line-height: 1.4;
+            padding: 16px 20px;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        /* Header ringkas */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .brand h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #0f172a;
+        }
+
+        .brand i {
+            color: #3b82f6;
+            background: white;
+            padding: 8px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .refresh-btn {
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .refresh-btn:hover {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 12px rgba(37,99,235,0.15);
+        }
+
+        /* Status Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .stat-item {
+            background: white;
+            border-radius: 20px;
+            padding: 16px 18px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.02);
+            border: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.25s ease;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.04);
+            border-color: #cbd5e1;
+        }
+
+        .stat-icon {
+            width: 42px;
+            height: 42px;
+            background: #eff6ff;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+            font-size: 1.3rem;
+        }
+
+        .stat-details h4 {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .stat-details .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.1;
+        }
+
+        .stat-details .sub {
+            font-size: 0.7rem;
+            color: #475569;
+            margin-top: 3px;
+        }
+
+        .online-dot {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            background: #10b981;
+            border-radius: 50%;
+            margin-right: 5px;
+            box-shadow: 0 0 0 2px rgba(16,185,129,0.2);
+            animation: pulse 1.8s infinite;
+        }
+
+        /* Section Card */
+        .card {
+            background: white;
+            border-radius: 22px;
+            padding: 18px 20px;
+            margin-bottom: 22px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.02);
+            border: 1px solid #f1f5f9;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            font-size: 1.2rem;
+            font-weight: 650;
+            color: #0f172a;
+            border-bottom: 1px solid #eef2f6;
+            padding-bottom: 10px;
+        }
+
+        .card-header i {
+            color: #3b82f6;
+            font-size: 1.2rem;
+            width: 1.6rem;
+        }
+
+        /* Table Controls */
+        .table-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #f8fafc;
+            padding: 4px;
+            border-radius: 40px;
+        }
+
+        .page-btn {
+            background: transparent;
+            border: none;
+            color: #334155;
+            width: 30px;
+            height: 30px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.15s;
+        }
+
+        .page-btn:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+        .page-btn.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .page-indicator {
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0 6px;
+            color: #1e293b;
+        }
+
+        /* Table */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 16px;
+        }
+
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 680px;
+        }
+
+        .api-table th {
+            background: #f8fafc;
+            padding: 12px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .api-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ecf1f7;
+            vertical-align: middle;
+        }
+
+        .api-table tbody tr {
+            transition: background 0.15s;
+        }
+
+        .api-table tbody tr:hover {
+            background: #fafcff;
+        }
+
+        .key-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .key-badge {
+            font-family: 'SF Mono', 'Menlo', monospace;
+            background: #f1f5f9;
+            padding: 5px 10px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            color: #1e40af;
+            border: 1px solid #e2e8f0;
+            word-break: break-all;
+            flex: 1;
+        }
+
+        .copy-icon {
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            padding: 5px 6px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            transition: all 0.15s;
+        }
+
+        .copy-icon:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .badge-new {
+            background: #dcfce7;
+            color: #166534;
+            padding: 3px 10px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.7rem;
+            display: inline-block;
+        }
+
+        /* Markdown */
+        .markdown-body {
+            font-size: 0.85rem;
+            color: #1e293b;
+        }
+
+        .markdown-body pre {
+            background: #0b1120;
+            color: #e2e8f0;
+            padding: 14px;
+            border-radius: 14px;
+            overflow-x: auto;
+        }
+
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .markdown-body th, .markdown-body td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 10px;
+        }
+
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.75rem;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.3); }
+            70% { box-shadow: 0 0 0 5px rgba(16,185,129,0); }
+            100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body { padding: 12px; }
+            .stats-row { grid-template-columns: 1fr; gap: 10px; }
+            .brand h1 { font-size: 1.4rem; }
+            .card { padding: 14px; }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="brand">
+            <h1>
+                <i class="fas fa-bolt"></i>
+                LLM KeyVault
+            </h1>
+        </div>
+        <button class="refresh-btn" id="refreshBtn" onclick="manualRefresh()">
+            <i class="fas fa-sync-alt fa-fw"></i> Refresh
+        </button>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stats-row">
+        <div class="stat-item">
+            <div class="stat-icon"><i class="fas fa-cloud-check"></i></div>
+            <div class="stat-details">
+                <h4>Server Status</h4>
+                <div class="value"><span class="online-dot"></span>Online</div>
+                <div class="sub">API endpoint aktif</div>
+            </div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-icon"><i class="fas fa-database"></i></div>
+            <div class="stat-details">
+                <h4>Total Keys</h4>
+                <div class="value" id="total-keys">-</div>
+                <div class="sub">dari {{ tables|length }} kategori</div>
+            </div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+            <div class="stat-details">
+                <h4>Last Sync</h4>
+                <div class="value" style="font-size:1.4rem;">
+                    {% if last_update %}
+                        {{ last_update.strftime('%H:%M') }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+                <div class="sub">
+                    {% if last_update %}
+                        {{ last_update.strftime('%d %b %Y') }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error -->
+    {% if error_msg %}
+    <div class="card" style="background:#fee2e2; border-left:5px solid #ef4444; color:#b91c1c;">
+        <i class="fas fa-circle-exclamation"></i> {{ error_msg }}
+    </div>
+    {% endif %}
+
+    <!-- Tabel per Kategori -->
+    {% for table in tables %}
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-rectangle-list"></i>
+            {{ table.title }}
+        </div>
+        <div class="table-actions">
+            <div class="pagination">
+                <button class="page-btn prev-page" data-table="{{ loop.index }}"><i class="fas fa-chevron-left"></i></button>
+                <span class="page-indicator" id="page-info-{{ loop.index }}">1/1</span>
+                <button class="page-btn next-page" data-table="{{ loop.index }}"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="api-table" id="api-table-{{ loop.index }}">
+                <thead>
+                    <tr>
+                        {% for header in table.headers %}
+                        <th>{{ header }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table.rows %}
+                    <tr class="data-row">
+                        {% for cell in row %}
+                        <td>
+                            {% if 'sk-' in cell %}
+                                <div class="key-cell">
+                                    <span class="key-badge">{{ cell }}</span>
+                                    <button class="copy-icon" onclick="copyToClipboard('{{ cell }}', this)">
+                                        <i class="far fa-copy"></i>
+                                    </button>
+                                </div>
+                            {% elif cell == '🆕 New' or cell == 'New' %}
+                                <span class="badge-new"><i class="fas fa-sparkles"></i> {{ cell }}</span>
+                            {% else %}
+                                {{ cell }}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- How to Use -->
+    {% if how_to_use_html %}
+    <div class="card">
+        <div class="card-header"><i class="fas fa-terminal"></i> How to Use</div>
+        <div class="markdown-body">{{ how_to_use_html | safe }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Works With -->
+    {% if works_with_html %}
+    <div class="card">
+        <div class="card-header"><i class="fas fa-puzzle-piece"></i> Works With</div>
+        <div class="markdown-body">{{ works_with_html | safe }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Supported Models -->
+    {% if supported_models_html %}
+    <div class="card">
+        <div class="card-header"><i class="fas fa-microchip"></i> Supported Models</div>
+        <div class="markdown-body">{{ supported_models_html | safe }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Changelog -->
+    {% if changelog_html %}
+    <div class="card">
+        <div class="card-header"><i class="fas fa-clock-rotate-left"></i> Changelog</div>
+        <div class="markdown-body" style="max-height:350px; overflow-y:auto;">{{ changelog_html | safe }}</div>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <span>⚡ Flask Scraper v2</span>
+        <span><a href="https://github.com/alistaitsacle/free-llm-api-keys" target="_blank">GitHub Source</a></span>
+    </div>
+</div>
+
+<script>
+    // Total keys counter
+    function updateTotalKeys() {
+        const rows = document.querySelectorAll('.api-table tbody .data-row');
+        document.getElementById('total-keys').textContent = rows.length;
+    }
+    updateTotalKeys();
+
+    // Pagination 10 rows per table
+    const rowsPerPage = 10;
+    document.querySelectorAll('.api-table').forEach((table, idx) => {
+        const tableId = idx + 1;
+        const rows = table.querySelectorAll('tbody .data-row');
+        if (rows.length === 0) return;
+        const totalPages = Math.ceil(rows.length / rowsPerPage);
+        const pageInfo = document.getElementById(`page-info-${tableId}`);
+        const prevBtn = document.querySelector(`.prev-page[data-table="${tableId}"]`);
+        const nextBtn = document.querySelector(`.next-page[data-table="${tableId}"]`);
+        let currentPage = 1;
+
+        function showPage(page) {
+            rows.forEach(r => r.style.display = 'none');
+            const start = (page-1)*rowsPerPage;
+            for (let i=start; i<start+rowsPerPage && i<rows.length; i++) rows[i].style.display = '';
+            pageInfo.textContent = `${page}/${totalPages}`;
+            prevBtn.classList.toggle('disabled', page === 1);
+            nextBtn.classList.toggle('disabled', page === totalPages);
+        }
+
+        prevBtn.addEventListener('click', () => { if(currentPage>1) { currentPage--; showPage(currentPage); }});
+        nextBtn.addEventListener('click', () => { if(currentPage<totalPages) { currentPage++; showPage(currentPage); }});
+        showPage(1);
+    });
+
+    function copyToClipboard(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+            const icon = btn.querySelector('i');
+            icon.classList.remove('fa-copy');
+            icon.classList.add('fa-check');
+            btn.style.color = '#10b981';
+            setTimeout(() => {
+                icon.classList.remove('fa-check');
+                icon.classList.add('fa-copy');
+                btn.style.color = '';
+            }, 1200);
+        }).catch(err => alert('Gagal menyalin'));
+    }
+
+    function manualRefresh() {
+        const btn = document.getElementById('refreshBtn');
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sync';
+        fetch('/refresh', {method:'POST'})
+            .then(r => r.ok ? setTimeout(()=>location.reload(), 1200) : alert('Proses update sedang berjalan'))
+            .catch(e => alert('Gagal: '+e))
+            .finally(() => { btn.disabled = false; btn.innerHTML = original; });
+    }
+</script>
+</body>
+</html>
