@@ -163,5 +163,6 @@ def refresh():
         return jsonify({'status': 'already in progress'}), 409
 
 if __name__ == '__main__':
-    fetch_and_parse()  # Isi cache saat startup
-    app.run(debug=True)
+    fetch_and_parse()
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)  # debug=False untuk production
